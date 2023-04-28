@@ -12,7 +12,8 @@ public class AnalisadorSintatico {
 	public static void main(String[] args) {
 		AnalisadorSintatico asin = 
 				new AnalisadorSintatico();
-
+		AFD afd = new AFD("SINTCOMPARACAO", "comparacaoConfig.txt", "saida2.csv", 1);
+		System.out.println("parou na linha: "+afd.valida_termo());
 	}
 
 }
