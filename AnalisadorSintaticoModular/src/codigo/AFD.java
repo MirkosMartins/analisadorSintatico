@@ -6,20 +6,24 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
 
+import codigo.EstadoFinal;
+import codigo.RegraTransicao;
+
 public class AFD {
 	String nomeSintaxe;
 	String arquivoConfig;
 	String tabSimbolos;
+	String[] tipoTokens;
 	int input;//ID do token onde o AFD começa o reconhecimento.
 	boolean output;//RECONHECE OU NAO A SINTAXE
 	String mensagem="";//Mensagem de erro (se houver)
-	
-	String estadoInicial,eInicial;
+	/*ATRIBUTOS USADOS PARA PERCORRER O AFD*/
+	String estadoInicial;
 	String estadoAtual;
 	LinkedList<String> estados = new LinkedList<String>();
 	LinkedList<EstadoFinal> estadosFinais = new LinkedList<EstadoFinal>();
 	LinkedList<RegraTransicao> regrastransicao = new LinkedList<RegraTransicao>();
-	
+		
 	
 	/**
 	 * Construtor da classe
@@ -28,20 +32,77 @@ public class AFD {
 	 * @param nomeTabSimbolos - arquivo tab simbolos
 	 */
 	public AFD(String nome,String arqConfig, 
-			String nomeTabSimbolos, int linha) {
+			String nomeTabSimbolos) {
 		nomeSintaxe=nome;
 		arquivoConfig=arqConfig;
 		tabSimbolos=nomeTabSimbolos;
-		input = linha;
-		le_config(arquivoConfig);
+		//le_config(arquivoConfig);
+	}
+	
+	/**
+	 * Construtor da classe - versao debug com lista de tipos de tokens
+	 * @param nome
+	 * @param arqConfig
+	 * @param tks
+	 */
+	public AFD(String nome, String arqConfig, 
+			String[] tks) {
+		nomeSintaxe=nome;
+		arquivoConfig=arqConfig;
+		tipoTokens = tks;
 		
 	}
 	
-	public void executa(int id_inicio) {
+	public int executa(int id_inicio) {
+		this.le_config();
+		output=false;
+		int i=0;
 		//existe a possibilidade de um AFD chamar um AFD
 		//COMO FAZER ISSO?
+		System.out.println("Estado atual:"+this.estadoAtual);
+		for(i=id_inicio;i<tipoTokens.length;i++) {
+			System.out.println(percorreAFD(tipoTokens[i]));
+			if(output==true)return i;
+			
+		}
+		return i;
 	}
-	public void le_config(String arquivoConfig) {
+	
+	public String percorreAFD(String termo) {
+		for(int i=0;i<regrastransicao.size();i++) {
+			RegraTransicao regra = regrastransicao.get(i);
+			if(regra.estadoinicial.equals(estadoAtual) 
+					&& regra.simbolos.contains(termo)) {
+				this.estadoAtual=regra.estadofinal;
+				System.out.println("Estado atual:"+this.estadoAtual);
+				String resposta = buscaEFinais(this.estadoAtual);
+				if(!resposta.isEmpty()) {
+					output=true;//reconheceu os termos
+					return resposta;
+				}else {
+					return "";
+				}				
+			}
+		}
+		return "ERRO";
+	}
+	
+	
+	private String buscaEFinais(String estado) {
+		String mensagem="";
+		for(int j=0;j<estadosFinais.size();j++) {
+			EstadoFinal ef = estadosFinais.get(j);
+			//System.out.println(ef.nomeestado+"contains"+estadoAtual);
+			if(ef.nomeestado.equals(estado)) {
+				mensagem = ef.tipo;
+				break;
+			}
+		}
+		return mensagem;
+	}
+	
+	private void le_config() {
+		String arquivoConfig = this.arquivoConfig;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(arquivoConfig));
 			String linha = br.readLine();
@@ -58,7 +119,6 @@ public class AFD {
 					//estou lendo o estado inicial
 					estadoInicial = linha;
 					estadoAtual = estadoInicial;
-					eInicial = estadoInicial;
 				}
 				if(index==2) {//terceira linha
 					//estados finais
@@ -89,63 +149,7 @@ public class AFD {
 			System.out.println("Nao foi possivel abrir o arquivo.");
 		}
 	}
-	
-	public int valida_termo() {
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(tabSimbolos));
-			int idx=1;
-			String linha = br.readLine();
-			while(idx != input) {
-				linha = br.readLine();
-				idx++;
-			}
-			while((linha = br.readLine())!=null) {
-				String colunas[]=linha.split(",");
-				System.out.println(colunas[4]);
-				String eretorno = percorreAFD(colunas[4]);
-				String ef = buscaEFinais(eretorno);
-				if(!ef.isEmpty()) {
-					System.out.println(ef);
-					estadoInicial = eInicial;
-				}			
-				idx++;
-			}
-			br.close();
-			return idx;
-		} catch (FileNotFoundException e) {
-			System.out.println("Nao foi possivel encontrar o arquivo");
-		} catch (IOException e) {
-			System.out.println("Nao foi possivel ler o arquivo");
-		}
-		return input;
-	}
-	
-	public String percorreAFD(String simbolo) {
-		for(int i=0;i<regrastransicao.size();i++) {
-			RegraTransicao regra = regrastransicao.get(i);
-			if(regra.estadoinicial.equals(estadoAtual)
-					&&regra.simbolos.contains(simbolo)) {
-				estadoAtual = regra.estadofinal;
-				return estadoAtual;
-			}
-		}
-		return "";
-	}
-	
-	private String buscaEFinais(String estado) {
-		String mensagem="";
-		for(int j=0;j<estadosFinais.size();j++) {
-			EstadoFinal ef = estadosFinais.get(j);
-			//System.out.println(ef.nomeestado+"contains"+estadoAtual);
-			if(ef.nomeestado.equals(estado)) {
-				mensagem = ef.tipo;
-				break;
-			}
-		}
-		return mensagem;
-	}
-	public void escreve_mensagem() {
-		
-	}
+
+	public void escreve_mensagem() {}
 
 }

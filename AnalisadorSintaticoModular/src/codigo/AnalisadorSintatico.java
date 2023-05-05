@@ -10,10 +10,17 @@ public class AnalisadorSintatico {
 	}
 
 	public static void main(String[] args) {
+		String[] vetorTokens = {"AParentesis",
+				"NOME","COMPARACAO","NOME","PV",
+				"NOME","COMPARACAO","NOME",};
 		AnalisadorSintatico asin = 
 				new AnalisadorSintatico();
-		AFD afd = new AFD("SINTCOMPARACAO", "comparacaoConfig.txt", "saida2.csv", 1);
-		System.out.println("parou na linha: "+afd.valida_termo());
+		AFD afd1 = new AFD("SINTCOMPARACAO",
+				"comparacaoConfig.txt",
+				vetorTokens);
+		System.out.println(afd1.executa(1));
+		System.out.println(afd1.executa(5));
+
 	}
 
 }
