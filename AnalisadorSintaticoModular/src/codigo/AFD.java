@@ -23,7 +23,7 @@ public class AFD {
 	LinkedList<String> estados = new LinkedList<String>();
 	LinkedList<EstadoFinal> estadosFinais = new LinkedList<EstadoFinal>();
 	LinkedList<RegraTransicao> regrastransicao = new LinkedList<RegraTransicao>();
-		
+	LinkedList<String> termosValidos;
 	
 	/**
 	 * Construtor da classe
@@ -46,11 +46,11 @@ public class AFD {
 	 * @param tks
 	 */
 	public AFD(String nome, String arqConfig, 
-			String[] tks) {
+			String[] tks, LinkedList termos) {
 		nomeSintaxe=nome;
 		arquivoConfig=arqConfig;
 		tipoTokens = tks;
-		
+		termosValidos = termos;
 	}
 	
 	public int executa(int id_inicio) {
@@ -69,6 +69,7 @@ public class AFD {
 	}
 	
 	public String percorreAFD(String termo) {
+		
 		for(int i=0;i<regrastransicao.size();i++) {
 			RegraTransicao regra = regrastransicao.get(i);
 			if(regra.estadoinicial.equals(estadoAtual) 
@@ -80,6 +81,10 @@ public class AFD {
 					output=true;//reconheceu os termos
 					return resposta;
 				}else {
+					System.out.println(regra.simbolos);
+					if(!termosValidos.contains(regra.simbolos)) {
+						System.out.println("Ira chamar o AFD "+regra.simbolos+" a partir de: "+i);
+					}
 					return "";
 				}				
 			}
