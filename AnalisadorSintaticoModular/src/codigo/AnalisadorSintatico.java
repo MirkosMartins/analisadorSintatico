@@ -1,6 +1,8 @@
 package codigo;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 public class AnalisadorSintatico {
 	
@@ -23,6 +25,19 @@ public class AnalisadorSintatico {
 				"default","if","static","while",
 				"do","int","struct","double"};
 	
+	HashMap<String, String> sintaxes = new HashMap<String, 
+			String>();
+	
+	String[] vetorTokens = {"IF","abreParentesis",
+			"NOME","COMPARACAO","NOME","fechaParentesis"};
+	
+	public void registraSintaxe(String nome, 
+			String arquivoConfig) {
+		
+		sintaxes.put(nome,
+				arquivoConfig);
+	}
+	
 	public void addTermos() {
 		for(int j=0;j<nomesTiposTokens.length;j++) {
 			termos.add(nomesTiposTokens[j]);
@@ -38,12 +53,12 @@ public class AnalisadorSintatico {
 	public AnalisadorSintatico() {
 		// TODO Auto-generated constructor stub
 		addTermos();
+		registraSintaxe("SINTIF", "ifConfig.txt");
+		registraSintaxe("SINTCOMPARACAO","comparacaoConfig.txt");
 	}
 
 	public static void main(String[] args) {
-		String[] vetorTokens = {"IF","abreParentesis",
-				"NOME","COMPARACAO","NOME","PV",
-				"NOME","COMPARACAO","NOME",};
+
 		AnalisadorSintatico asin = 
 				new AnalisadorSintatico();
 		/*AFD afd1 = new AFD("SINTCOMPARACAO",
@@ -51,9 +66,10 @@ public class AnalisadorSintatico {
 				vetorTokens,asin.termos);
 		System.out.println(afd1.executa(2));
 		System.out.println(afd1.executa(6));*/
-		AFD afdIF = new AFD("SINTIF","ifConfig.txt",vetorTokens,asin.termos);
+		AFD afdIF = new AFD("SINTIF","ifConfig.txt",
+				asin.vetorTokens,asin.termos);
+		afdIF.setSintaxes(asin.sintaxes);
 		System.out.println(afdIF.executa(0));
-
 	}
 
 }

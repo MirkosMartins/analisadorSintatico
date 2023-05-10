@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 import codigo.EstadoFinal;
 import codigo.RegraTransicao;
@@ -14,6 +16,7 @@ public class AFD {
 	String arquivoConfig;
 	String tabSimbolos;
 	String[] tipoTokens;
+	HashMap<String, String> sintaxes;
 	int input;//ID do token onde o AFD começa o reconhecimento.
 	boolean output;//RECONHECE OU NAO A SINTAXE
 	String mensagem="";//Mensagem de erro (se houver)
@@ -40,7 +43,8 @@ public class AFD {
 	}
 	
 	/**
-	 * Construtor da classe - versao debug com lista de tipos de tokens
+	 * Construtor da classe - versao debug 
+	 * com lista de tipos de tokens
 	 * @param nome
 	 * @param arqConfig
 	 * @param tks
@@ -53,6 +57,10 @@ public class AFD {
 		termosValidos = termos;
 	}
 	
+	public void setSintaxes(HashMap<String,String> s) {
+		sintaxes = s;
+	}
+	
 	public int executa(int id_inicio) {
 		this.le_config();
 		output=false;
@@ -61,21 +69,20 @@ public class AFD {
 		//COMO FAZER ISSO?
 		System.out.println("Estado atual:"+this.estadoAtual);
 		for(i=id_inicio;i<tipoTokens.length;i++) {
-			System.out.println(percorreAFD(tipoTokens[i]));
-			if(output==true)return i;
-			
+			System.out.println(percorreAFD(tipoTokens[i],id_inicio));
+			if(output==true)return i;			
 		}
 		return i;
 	}
 	
-	public String percorreAFD(String termo) {
+	public String percorreAFD(String termo,int id_inicio) {
 		
 		for(int i=0;i<regrastransicao.size();i++) {
 			RegraTransicao regra = regrastransicao.get(i);
 			if(regra.estadoinicial.equals(estadoAtual) 
-					&& regra.simbolos.contains(termo)) {
+					&& regra.simbolos.equals(termo)) {
 				this.estadoAtual=regra.estadofinal;
-				System.out.println("Estado atual:"+this.estadoAtual);
+				System.out.println("Novo estado atual:"+this.estadoAtual);
 				String resposta = buscaEFinais(this.estadoAtual);
 				if(!resposta.isEmpty()) {
 					output=true;//reconheceu os termos
@@ -89,7 +96,27 @@ public class AFD {
 				}				
 			}
 		}
-		return "ERRO";
+		String erro = "ERRO "+termo+" Estado atual: "+estadoAtual;
+		/*PROCURA UM SINTAXE COMO REGRA DE TRANSICAO
+		 * que sai do estado atual
+		 */
+		for(int x=0;x<regrastransicao.size();x++) {
+			RegraTransicao r = regrastransicao.get(x);
+			if(r.estadoinicial.equals(estadoAtual)) {
+				System.out.println("REGRA: "+r.simbolos);
+				//verifica se o SIMBOLO 
+				//eh o nome de uma sintaxe
+				if(sintaxes.containsKey(r.simbolos)) {
+					System.out.println("O Simbolo eh uma chave de sintaxe!");
+					AFD afd = new AFD(r.simbolos,sintaxes.get(r.simbolos),
+							tipoTokens,termosValidos);
+					afd.setSintaxes(sintaxes);
+					afd.executa(id_inicio);
+				}
+			}
+		}
+		return erro;
+		
 	}
 	
 	
