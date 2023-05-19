@@ -11,6 +11,8 @@ import java.util.Map;
 import codigo.EstadoFinal;
 import codigo.RegraTransicao;
 
+
+
 public class AFD {
 	String nomeSintaxe;
 	String arquivoConfig;
@@ -29,6 +31,12 @@ public class AFD {
 	LinkedList<EstadoFinal> estadosFinais = new LinkedList<EstadoFinal>();
 	LinkedList<RegraTransicao> regrastransicao = new LinkedList<RegraTransicao>();
 	LinkedList<String> termosValidos;
+	// ANSI escape code for color red
+	String red = "\u001B[31m";
+	// ANSI escape code for color green
+	String green = "\u001B[32m";
+	// ANSI escape code to reset text color
+	String reset = "\u001B[0m";
 	
 	/**
 	 * Construtor da classe
@@ -51,14 +59,13 @@ public class AFD {
 	 * @param arqConfig
 	 * @param tks
 	 */
-	public AFD(String nome, String arqConfig, 
-			String[] tks, LinkedList termos) {
+	public AFD(String nome, String arqConfig, String[] tks, LinkedList termos) {
 		nomeSintaxe=nome;
 		arquivoConfig=arqConfig;
 		tipoTokens = tks;
 		termosValidos = termos;
 	}
-	
+
 	public void setSintaxes(HashMap<String,String> s) {
 		sintaxes = s;
 	}
@@ -69,9 +76,9 @@ public class AFD {
 		String resposta="";
 		for(input = id_inicio;input<tipoTokens.length;input++) {
 			resposta = percorreAFD(tipoTokens[input]);
-			if(resposta.startsWith("NAO RECONHECIDO")){
-				System.out.println(resposta);
-				break;
+			if(resposta.startsWith("ERRO")){
+				System.out.println(red + resposta +reset);
+				System.exit(0);
 			}
 			if(output==true) {
 				System.out.println(buscaEFinais(estadoAtual));
@@ -85,24 +92,17 @@ public class AFD {
 		String resposta = "NAO RECONHECIDO";
 		for(int i=0;i<regrastransicao.size();i++) {
 			RegraTransicao regra = regrastransicao.get(i);
-			if(regra.estadoinicial.equals(estadoAtual) 
-					&& regra.simbolos.startsWith("SINT")
-					&& this.frecon==false){
-				System.out.println("O Simbolo eh uma chave de sintaxe!");
+			if(regra.estadoinicial.equals(estadoAtual) && regra.simbolos.startsWith("SINT") && this.frecon==false){
+				System.out.println(green + "O Simbolo eh uma chave de sintaxe!"+reset);
 				System.out.println("Abrindo AFD: "+regra.simbolos);
 				AFD afd = new AFD(regra.simbolos,sintaxes.get(regra.simbolos), tipoTokens,termosValidos);
 				afd.setSintaxes(sintaxes);
 				input = afd.executa(input);
 				termo = afd.resultado;
 				frecon=afd.output;
-				System.out.println("Retornando ao: "+nomeSintaxe);
-				//i--;
+				System.out.println("Retornando ao:"+nomeSintaxe);
 			}
-			System.out.println(nomeSintaxe
-					+":"+estadoAtual+":"+termo+":"
-					+regra.estadoinicial+" "+regra.simbolos);
-			if(regra.estadoinicial.equals(estadoAtual) 
-					&& regra.simbolos.contains(termo)) {
+			if(regra.estadoinicial.equals(estadoAtual) && regra.simbolos.contains(termo)) {
 				System.out.println(nomeSintaxe+":"+this.estadoAtual+":"+termo+":"+regra.estadofinal);
 				this.estadoAtual=regra.estadofinal;
 				this.frecon=false;
@@ -114,6 +114,17 @@ public class AFD {
 			}
 		}
 		resultado = termo;
+		if(resposta.equals("NAO RECONHECIDO")) {
+			String simbolo="";
+			for(int i = 0; i<regrastransicao.size();i++) {
+				RegraTransicao regra = regrastransicao.get(i);
+				if(regra.estadoinicial.equals(estadoAtual)) {
+					simbolo = regra.simbolos;
+					break;
+				}
+			}		
+			resposta ="ERRO: Era esperado -> "+ green + simbolo + reset +" <- e foi passado-> "+ red + resultado +reset+" <-token: "+ input;
+		}
 		return resposta;
 	}	
 	
@@ -179,7 +190,6 @@ public class AFD {
 			System.out.println("Nao foi possivel abrir o arquivo.");
 		}
 	}
-
 	public void escreve_mensagem() {}
 
 }
