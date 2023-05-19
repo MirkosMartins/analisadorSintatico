@@ -29,7 +29,7 @@ public class AnalisadorSintatico {
 			String>();
 	
 	String[] vetorTokens = {"IF","abreParentesis",
-			"NOME","COMPARACAO","NOME","fechaParentesis"};
+			"NOME","COMPARACAO","NOME"," ","PV","fechaParentesis"};
 	
 	public void registraSintaxe(String nome, 
 			String arquivoConfig) {
@@ -54,7 +54,7 @@ public class AnalisadorSintatico {
 		// TODO Auto-generated constructor stub
 		addTermos();
 		registraSintaxe("SINTIF", "ifConfig.txt");
-		registraSintaxe("SINTCOMPARACAO","comparacaoConfig.txt");
+		registraSintaxe("SINTCOMP","comparacaoConfig.txt");
 	}
 
 	public static void main(String[] args) {

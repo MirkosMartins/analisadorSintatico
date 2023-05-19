@@ -11,13 +11,11 @@ import java.util.Map;
 import codigo.EstadoFinal;
 import codigo.RegraTransicao;
 
-public class AFD {
+public class AFD2 {
 	String nomeSintaxe;
 	String arquivoConfig;
 	String tabSimbolos;
-	String resultado;
 	String[] tipoTokens;
-	boolean frecon=false;
 	HashMap<String, String> sintaxes;
 	int input;//ID do token onde o AFD começa o reconhecimento.
 	boolean output;//RECONHECE OU NAO A SINTAXE
@@ -36,7 +34,7 @@ public class AFD {
 	 * @param nomeArq - arquivo de configuracao
 	 * @param nomeTabSimbolos - arquivo tab simbolos
 	 */
-	public AFD(String nome,String arqConfig, 
+	public AFD2(String nome,String arqConfig, 
 			String nomeTabSimbolos) {
 		nomeSintaxe=nome;
 		arquivoConfig=arqConfig;
@@ -51,7 +49,7 @@ public class AFD {
 	 * @param arqConfig
 	 * @param tks
 	 */
-	public AFD(String nome, String arqConfig, 
+	public AFD2(String nome, String arqConfig, 
 			String[] tks, LinkedList termos) {
 		nomeSintaxe=nome;
 		arquivoConfig=arqConfig;
@@ -66,46 +64,39 @@ public class AFD {
 	public int executa(int id_inicio) {
 		this.le_config();
 		output=false;
-		String resposta="";
-		for(input = id_inicio;input<tipoTokens.length;input++) {
-			resposta = percorreAFD(tipoTokens[input]);
-			if(resposta.startsWith("NAO RECONHECIDO")){
-				System.out.println(resposta);
-				break;
-			}
-			if(output==true) {
-				System.out.println(buscaEFinais(estadoAtual));
-				return input;
-			}
+		int i=0;
+		System.out.println("Estado atual:"+this.estadoAtual);
+		for(i=id_inicio;i<tipoTokens.length;i++) {
+			percorreAFD(tipoTokens[i]);
+			if(output==true) {//quando o AFD chegou ao final
+				return i;
+			}else {
+				System.out.println(i);
+			}			
 		}
-		return id_inicio;
+		return i;
 	}
-
+	
+	String resultado;
+	
 	public String percorreAFD(String termo){
 		String resposta = "NAO RECONHECIDO";
 		for(int i=0;i<regrastransicao.size();i++) {
 			RegraTransicao regra = regrastransicao.get(i);
 			if(regra.estadoinicial.equals(estadoAtual) 
-					&& regra.simbolos.startsWith("SINT")
-					&& this.frecon==false){
+					&& regra.simbolos.startsWith("SINT")){
 				System.out.println("O Simbolo eh uma chave de sintaxe!");
 				System.out.println("Abrindo AFD: "+regra.simbolos);
-				AFD afd = new AFD(regra.simbolos,sintaxes.get(regra.simbolos), tipoTokens,termosValidos);
+				AFD2 afd = new AFD2(regra.simbolos,sintaxes.get(regra.simbolos), tipoTokens,termosValidos);
 				afd.setSintaxes(sintaxes);
 				input = afd.executa(input);
-				termo = afd.resultado;
-				frecon=afd.output;
-				System.out.println("Retornando ao: "+nomeSintaxe);
-				//i--;
+				termo = afd.resultado;	
+				System.out.println("Retornando ao: "+nomeSintaxe);				
 			}
-			System.out.println(nomeSintaxe
-					+":"+estadoAtual+":"+termo+":"
-					+regra.estadoinicial+" "+regra.simbolos);
 			if(regra.estadoinicial.equals(estadoAtual) 
 					&& regra.simbolos.contains(termo)) {
 				System.out.println(nomeSintaxe+":"+this.estadoAtual+":"+termo+":"+regra.estadofinal);
 				this.estadoAtual=regra.estadofinal;
-				this.frecon=false;
 				resposta = buscaEFinais(this.estadoAtual);
 				if(!resposta.isEmpty()) {
 					output=true;//reconheceu os termos
@@ -115,7 +106,60 @@ public class AFD {
 		}
 		resultado = termo;
 		return resposta;
-	}	
+	}
+	
+	/*
+	public int percorreAFD(String termo,int id_inicio) {
+		
+		for(int i=0;i<regrastransicao.size();i++) {
+			RegraTransicao regra = regrastransicao.get(i);
+			if(regra.estadoinicial.equals(estadoAtual) 
+					&& regra.simbolos.contains(termo)) {
+				this.estadoAtual=regra.estadofinal;
+				System.out.println("Sintaxe: "+nomeSintaxe+" Novo estado atual:"+this.estadoAtual);
+				String resposta = buscaEFinais(this.estadoAtual);
+				if(!resposta.isEmpty()) {
+					output=true;//reconheceu os termos
+					System.out.println("Eh Final: "+buscaEFinais(this.estadoAtual));
+					return id_inicio+1;
+				}else {					
+					output=false;
+					System.out.println("Nao eh final "+regra.simbolos);
+					if(!termosValidos.contains(regra.simbolos)) {
+						System.out.println("Ira chamar o AFD "+regra.simbolos+" a partir de: "+i);
+							return id_inicio+1;
+						}
+					System.out.println("*");
+					return id_inicio+1;
+				}				
+			}
+		}
+		String erro = "ERRO "+termo+" Estado atual: "+estadoAtual;
+		/*PROCURA UM SINTAXE COMO REGRA DE TRANSICAO
+		 * que sai do estado atual
+		 */
+	/*
+		for(int x=0;x<regrastransicao.size();x++) {
+			RegraTransicao r = regrastransicao.get(x);
+			if(r.estadoinicial.equals(estadoAtual)) {
+				System.out.println("REGRA: "+r.simbolos);
+				//verifica se o SIMBOLO 
+				//eh o nome de uma sintaxe
+				if(sintaxes.containsKey(r.simbolos)) {
+					System.out.println("O Simbolo eh uma chave de sintaxe!");
+					AFD afd = new AFD(r.simbolos,sintaxes.get(r.simbolos),
+							tipoTokens,termosValidos);
+					afd.setSintaxes(sintaxes);
+					afd.executa(id_inicio);
+				}
+			}
+		}
+		return id_inicio;
+		
+	}
+	*/
+	
+	
 	
 	private String buscaEFinais(String estado) {
 		String mensagem="";
@@ -123,8 +167,7 @@ public class AFD {
 			EstadoFinal ef = estadosFinais.get(j);
 			//System.out.println(ef.nomeestado+"contains"+estadoAtual);
 			if(ef.nomeestado.equals(estado)) {
-				mensagem = "RECONHECIDO: "+ef.tipo;
-				resultado = ef.tipo;
+				mensagem = ef.tipo;
 				break;
 			}
 		}
