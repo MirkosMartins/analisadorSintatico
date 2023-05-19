@@ -2,7 +2,6 @@ package codigo;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 
 public class AnalisadorSintatico {
 	
@@ -29,7 +28,7 @@ public class AnalisadorSintatico {
 			String>();
 	
 	String[] vetorTokens = {"IF","abreParentesis",
-			"NOME","COMPARACAO","NOME"," ","PV","fechaParentesis"};
+			"NOME","COMPARACAO","NOME","PV","fechaParentesis"};
 	
 	public void registraSintaxe(String nome, 
 			String arquivoConfig) {
